@@ -1,0 +1,110 @@
+import math
+
+# Display the board
+def print_board(board):
+    for row in board:
+        print("|".join(row))
+        print("-" * 5)
+
+# Check for a winner or draw
+def check_winner(board):
+    # Rows, columns, diagonals
+    lines = board + list(map(list, zip(*board))) + [ 
+        [board[i][i] for i in range(3)],
+        [board[i][2-i] for i in range(3)]
+    ]
+
+    for line in lines:
+        if line == ['X', 'X', 'X']:
+            return 'X'
+        elif line == ['O', 'O', 'O']:
+            return 'O'
+
+    if all(cell != ' ' for row in board for cell in row):
+        return 'Draw'
+
+    return None
+
+# Get available moves
+def get_available_moves(board):
+    return [(r, c) for r in range(3) for c in range(3) if board[r][c] == ' ']
+
+# Minimax algorithm
+def minimax(board, depth, is_maximizing):
+    result = check_winner(board)
+    if result == 'X':
+        return -1
+    elif result == 'O':
+        return 1
+    elif result == 'Draw':
+        return 0
+
+    if is_maximizing:
+        best_score = -math.inf
+        for (r, c) in get_available_moves(board):
+            board[r][c] = 'O'
+            score = minimax(board, depth + 1, False)
+            board[r][c] = ' '
+            best_score = max(score, best_score)
+        return best_score
+    else:
+        best_score = math.inf
+        for (r, c) in get_available_moves(board):
+            board[r][c] = 'X'
+            score = minimax(board, depth + 1, True)
+            board[r][c] = ' '
+            best_score = min(score, best_score)
+        return best_score
+
+# AI move using Minimax
+def ai_move(board):
+    best_score = -math.inf
+    best_move = None
+    for (r, c) in get_available_moves(board):
+        board[r][c] = 'O'
+        score = minimax(board, 0, False)
+        board[r][c] = ' '
+        if score > best_score:
+            best_score = score
+            best_move = (r, c)
+    return best_move
+
+# Main game loop
+def play_game():
+    board = [[' ' for _ in range(3)] for _ in range(3)]
+    print("Welcome to Tic-Tac-Toe!\nYou are X. AI is O.\n")
+    print_board(board)
+
+    while True:
+        # Human move
+        while True:
+            try:
+                move = input("Enter your move (row col): ").split()
+                row, col = int(move[0]), int(move[1])
+                if board[row][col] == ' ':
+                    board[row][col] = 'X'
+                    break
+                else:
+                    print("Cell already taken.")
+            except:
+                print("Invalid input. Use row and col (e.g., 0 2).")
+
+        print_board(board)
+        result = check_winner(board)
+        if result:
+            print("Result:", result)
+            break
+
+        # AI move
+        r, c = ai_move(board)
+        board[r][c] = 'O'
+        print("\nAI played:")
+        print_board(board)
+
+        result = check_winner(board)
+        if result:
+            print("Result:", result)
+            break
+
+# Run the game
+play_game()
